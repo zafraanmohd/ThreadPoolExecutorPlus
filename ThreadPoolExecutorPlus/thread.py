@@ -8,8 +8,9 @@ __original_author__ = 'Brian Quinlan (brian@sweetapp.com)'
 
 import atexit
 from concurrent.futures import _base
+from multiprocessing import cpu_count
 import itertools
-import queue
+import Queue as queue
 import threading
 import weakref
 import os
@@ -17,9 +18,9 @@ import platform
 
 pltfm = platform.system()
 if pltfm == 'Windows':
-    DEFAULT_MAXIMUM_WORKER_NUM = (os.cpu_count() or 1) * 16
+    DEFAULT_MAXIMUM_WORKER_NUM = (cpu_count() or 1) * 16
 elif pltfm == 'Linux' or pltfm == 'Darwin':
-    DEFAULT_MAXIMUM_WORKER_NUM = (os.cpu_count() or 1) * 32
+    DEFAULT_MAXIMUM_WORKER_NUM = (cpu_count() or 1) * 32
 else:
     raise RuntimeError("We havent decided how many threads should acquire on your platform. Maybe you have to modify source code your self.")
 
@@ -47,7 +48,7 @@ _shutdown = False
 def _python_exit():
     global _shutdown
     _shutdown = True
-    items = list(_threads_queues.items())
+    items = list(_threads_queues.items()) if _threads_queues else ()
     for t, q in items:
         q.put(None)
     for t, q in items:
@@ -81,7 +82,7 @@ class _WorkItem(object):
 class _CustomThread(threading.Thread):
 
     def __init__(self , name , executor_reference, work_queue, initializer, initargs , thread_counter):
-        super().__init__(name = name)
+        super(_CustomThread, self).__init__(name = name)
         self._executor_reference = executor_reference
         self._work_queue = work_queue
         self._initializer = initializer
@@ -193,7 +194,7 @@ class BrokenThreadPool(_class_brokenexecutor):
 class ThreadPoolExecutor(_base.Executor):
 
     # Used to assign unique thread names when thread_name_prefix is not supplied.
-    _counter = itertools.count().__next__
+    _counter = itertools.count().next
 
     def __init__(self, max_workers=None, thread_name_prefix='',
                  initializer=None, initargs=()):
@@ -213,7 +214,7 @@ class ThreadPoolExecutor(_base.Executor):
             # used to overlap I/O instead of CPU work.
             max_workers = DEFAULT_MAXIMUM_WORKER_NUM
         if max_workers < 1:
-            raise ValueError(f"max_workers must be greater than min_workers , min_workers must be greater than 1")
+            raise ValueError("max_workers must be greater than min_workers , min_workers must be greater than 1")
         elif 1 <= max_workers < self._min_workers:
             self._min_workers = max_workers
 
