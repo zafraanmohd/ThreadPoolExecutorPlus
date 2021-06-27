@@ -1,3 +1,6 @@
+**Purpose of this fork is to make it work for python2.**
+
+
 # ThreadPoolExecutorPlus
 [![fury](https://badge.fury.io/py/ThreadPoolExecutorPlus.svg)](https://badge.fury.io/py/ThreadPoolExecutorPlus)
 [![licence](https://img.shields.io/github/license/GoodManWEN/ThreadPoolExecutorPlus)](https://github.com/GoodManWEN/ThreadPoolExecutorPlus/blob/master/LICENSE)
